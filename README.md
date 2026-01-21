@@ -92,6 +92,67 @@ from app.sub_agents.history_teacher.agent import history_teacher
 
 ---
 
+## 👤 Identifying the user in Agent Engine Sessions (User ID)
+
+When your agent is deployed on **Vertex AI Agent Engine**, each chat creates a **Session**. In the Agent Engine UI, sessions have default fields like:
+
+- Session ID
+- Display name
+- **User ID**
+- Created
+- Last active
+
+By default, many deployments end up with a generic/opaque `User ID`. This makes it hard to audit who started each conversation in:
+
+- Agent Engine **Playground**
+- **Gemini Enterprise** chat
+
+Oraicle provides an **optional** helper to resolve a human-readable `user_id` (usually an **email** or **name**) from:
+
+- An explicit parameter you already have (e.g. `user`)
+- Request headers (e.g. Google/IAP/forwarded identity headers)
+- A JWT found in `Authorization: Bearer ...` (decoded only; no signature verification)
+
+### ✅ How to activate (opt-in)
+
+Import and use `agent_engine_user_id()` and pass its result to ADK when querying the agent:
+
+```python
+from oraicle.adk.user_identity import agent_engine_user_id
+
+# If you already receive "user" (like your own API payload):
+resolved = agent_engine_user_id(explicit_user=user, default="anonymous")
+
+async for event in adk_app.async_stream_query(
+    user_id=resolved.user_id,   # 👈 this becomes Agent Engine "User ID"
+    message=user_input,
+):
+    ...
+```
+
+### ✅ Using headers (when available)
+
+If your framework provides a request object with `request.headers`, you can pass it directly:
+
+```python
+from oraicle.adk.user_identity import agent_engine_user_id
+
+resolved = agent_engine_user_id(request=request, default="anonymous")
+
+async for event in adk_app.async_stream_query(
+    user_id=resolved.user_id,
+    message=user_input,
+):
+    ...
+```
+
+### Notes
+
+- **Backward compatible**: this feature is **100% opt-in** (it does nothing unless you import and use it).
+- **Security**: JWT decoding here is for **display/identification only**. Do not use it for authorization decisions.
+
+---
+
 ## 🔧 Using Tools with Oraicle-Agent
 
 Oraicle-Agent provides **automatic runtime discovery of tools**, allowing sub-agents to use tools **without importing directly from** `app.tools`.
