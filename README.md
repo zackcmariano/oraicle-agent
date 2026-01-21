@@ -115,35 +115,35 @@ Oraicle provides an **optional** helper to resolve a human-readable `user_id` (u
 
 ### ✅ How to activate (opt-in)
 
-Import and use `agent_engine_user_id()` and pass its result to ADK when querying the agent:
+Coloque isso no seu `agent.py` (padrão de uso):
 
 ```python
-from oraicle.adk.user_identity import agent_engine_user_id
+from google.adk.agents import Agent
+from oraicle.adk import get_agent_engine_user_id
+from oraicle.adk.local import configure_local_adk_web
 
-# If you already receive "user" (like your own API payload):
-resolved = agent_engine_user_id(explicit_user=user, default="anonymous")
+# (Opcional) recomendado para rodar `adk web` local sem ruídos no log
+configure_local_adk_web()
 
-async for event in adk_app.async_stream_query(
-    user_id=resolved.user_id,   # 👈 this becomes Agent Engine "User ID"
-    message=user_input,
-):
-    ...
+root_agent = Agent(
+    name="diretorescola",
+    model="gemini-2.0-flash",
+    instruction=AGENT_PROMPT,
+)
+
+# (Opcional) facilita importar os 2 símbolos do mesmo arquivo:
+__all__ = ["root_agent", "get_agent_engine_user_id"]
 ```
 
 ### ✅ Using headers (when available)
 
-If your framework provides a request object with `request.headers`, you can pass it directly:
+Na hora de iniciar/rodar uma Session (runtime), use a função assim:
 
 ```python
-from oraicle.adk.user_identity import agent_engine_user_id
-
-resolved = agent_engine_user_id(request=request, default="anonymous")
-
-async for event in adk_app.async_stream_query(
-    user_id=resolved.user_id,
-    message=user_input,
-):
-    ...
+user_id = get_agent_engine_user_id(
+    request=request,          # lê request.headers (Cloud Run / IAP / proxies)
+    default="anonymous",
+)
 ```
 
 ### Notes

@@ -33,6 +33,31 @@ class ResolvedUserIdentity:
     source: str
 
 
+def get_agent_engine_user_id(
+    *,
+    explicit_user: str | None = None,
+    request: Any | None = None,
+    headers: Mapping[str, str] | None = None,
+    default: str = "anonymous",
+) -> str:
+    """
+    Convenience helper: return only the `user_id` string (instead of the full
+    `ResolvedUserIdentity` object).
+
+    This is intentionally a thin wrapper around `agent_engine_user_id()` so
+    callers can do a one-liner without defining their own helper function:
+
+        user_id = get_agent_engine_user_id(explicit_user=user, request=request)
+    """
+
+    return agent_engine_user_id(
+        explicit_user=explicit_user,
+        request=request,
+        headers=headers,
+        default=default,
+    ).user_id
+
+
 def resolve_agent_engine_user_id(
     *,
     explicit_user: str | None = None,

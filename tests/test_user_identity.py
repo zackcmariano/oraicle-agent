@@ -1,5 +1,6 @@
 import unittest
 
+from oraicle.adk import get_agent_engine_user_id
 from oraicle.adk.user_identity import agent_engine_user_id, resolve_agent_engine_user_id
 
 
@@ -46,6 +47,10 @@ class TestUserIdentity(unittest.TestCase):
         resolved = resolve_agent_engine_user_id(explicit_user="Someone", default="anon")
         self.assertEqual(resolved.user_id, "Someone")
         self.assertEqual(resolved.source, "explicit_user")
+
+    def test_get_agent_engine_user_id_returns_str(self):
+        user_id = get_agent_engine_user_id(explicit_user="Someone", default="anon")
+        self.assertEqual(user_id, "Someone")
 
 
 if __name__ == "__main__":
